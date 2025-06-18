@@ -15,7 +15,7 @@
   ],
   "host_permissions": [
     "https://mail.google.com/*",
-    "http://localhost:5000/"
+    "https://toru-ai-extension.onrender.com/*"
   ],
   "action": {
     "default_title": "Toru.AI",
