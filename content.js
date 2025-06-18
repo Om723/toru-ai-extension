@@ -259,7 +259,7 @@ close.addEventListener("click", (e) => {
 
     showTyping();
 
-    fetch("http://localhost:5000/chat", {
+    fetch("https://toru-ai-extension.onrender.com/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
