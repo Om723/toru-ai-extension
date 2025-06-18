@@ -3,6 +3,7 @@ from flask_cors import CORS
 import google.generativeai as genai
 from bs4 import BeautifulSoup
 import re
+import os
 
 genai.configure(api_key="AIzaSyCdVqRy_5uQpFzop1xWzW1UUx1F-7TbP4M")
 model = genai.GenerativeModel("gemini-2.0-flash")
@@ -177,5 +178,7 @@ def chat():
     return jsonify({"reply": reply})
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
     
