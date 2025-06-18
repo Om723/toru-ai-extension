@@ -123,7 +123,7 @@ def chat():
             - Again, do NOT support filtered or specific-user summaries. If asked, reply politely starting with '0'
 
             4. Sending Emails:
-            - If the user wants to send an email and provides all required details (recipient email and a small context to write body and subject), reply with '3' and generate a professional email in this format:
+            - If the user wants to send an email and provides all required details (recipient email and a small context to write body and subject), reply starting with '3' and generate a professional email in this format:
             To: <recipient_email>
             Sub: <subject>
             Body:
@@ -155,6 +155,7 @@ def chat():
 
         response = chat.send_message(user_input)
         reply = response.text.strip()
+        print(reply)
 
         if reply == "1":
             if len(unread_emails) == 0:
