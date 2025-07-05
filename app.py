@@ -3,9 +3,15 @@ from flask_cors import CORS
 import google.generativeai as genai
 from bs4 import BeautifulSoup
 import re
+
 import os
 
-genai.configure(api_key="AIzaSyCdVqRy_5uQpFzop1xWzW1UUx1F-7TbP4M")
+
+# Read Gemini API key from environment variable
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY environment variable not set.")
+genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-2.0-flash")
 
 app = Flask(__name__)

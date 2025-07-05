@@ -10,8 +10,11 @@
 
   let chatHistory = [];
 
+  // Set initial position using right/bottom (not left/top)
   Object.assign(wrapper.style, {
     position: "fixed",
+    left: "auto",
+    top: "auto",
     bottom: "60px",
     right: "40px",
     height: "40px",
@@ -29,6 +32,8 @@
     width: "40px",
     padding: "0 0px",
   });
+
+  let initializedPosition = false;
 
   const mic = document.createElement("img");
   mic.src = "https://framerusercontent.com/images/nsJO65KEQQCaT68S2jWiQdg7mg.svg";
@@ -227,6 +232,19 @@
 
   wrapper.addEventListener("click", () => {
     if (wrapper.classList.contains("collapsed")) {
+      // Always use right/bottom for open
+      wrapper.style.left = "auto";
+      wrapper.style.top = "auto";
+      if (lastLeft !== null && lastTop !== null) {
+        // Calculate right/bottom from window size and last drag
+        const right = window.innerWidth - (lastLeft + wrapper.offsetWidth);
+        const bottom = window.innerHeight - (lastTop + wrapper.offsetHeight);
+        wrapper.style.right = `${Math.max(0, right)}px`;
+        wrapper.style.bottom = `${Math.max(0, bottom)}px`;
+      } else {
+        wrapper.style.right = "40px";
+        wrapper.style.bottom = "60px";
+      }
       wrapper.style.width = "360px";
       wrapper.classList.remove("collapsed");
       if (chatHistory.length > 0) {
@@ -243,12 +261,7 @@
     }
   });
 
-  function openPreFilledGmail({ to, subject, body }) {
-    const base = "https://mail.google.com/mail/?view=cm&fs=1";
-    const url = `${base}&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(url, "_blank");
-  }
-
+  // When collapsing, save the right/bottom position as last drag
   close.addEventListener("click", (e) => {
     e.stopPropagation();
     const hasText = textInput.value.trim().length > 0;
@@ -265,7 +278,7 @@
 
       showTyping();
 
-      fetch("https://toru-ai-extension.onrender.com/chat", {
+      fetch("http://localhost:5000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -342,4 +355,72 @@
     }
   });
 
+  // --- Make the wrapper draggable ---
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  let lastLeft = null;
+  let lastTop = null;
+
+  // Allow drag on the wrapper at all times (even when collapsed or open)
+  wrapper.addEventListener("mousedown", (e) => {
+    if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+      isDragging = true;
+      dragOffsetX = e.clientX - wrapper.getBoundingClientRect().left;
+      dragOffsetY = e.clientY - wrapper.getBoundingClientRect().top;
+      document.body.style.userSelect = "none";
+    }
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (isDragging) {
+      // Calculate right/bottom from mouse
+      const newRight = window.innerWidth - e.clientX - (wrapper.offsetWidth - dragOffsetX);
+      const newBottom = window.innerHeight - e.clientY - (wrapper.offsetHeight - dragOffsetY);
+      wrapper.style.left = "auto";
+      wrapper.style.top = "auto";
+      wrapper.style.right = `${Math.max(0, newRight)}px`;
+      wrapper.style.bottom = `${Math.max(0, newBottom)}px`;
+      lastLeft = window.innerWidth - parseInt(wrapper.style.right) - wrapper.offsetWidth;
+      lastTop = window.innerHeight - parseInt(wrapper.style.bottom) - wrapper.offsetHeight;
+    }
+  });
+
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+    document.body.style.userSelect = "";
+  });
+
+  // When expanding, keep the widget at the last dragged position
+  wrapper.addEventListener("click", () => {
+    if (wrapper.classList.contains("collapsed")) {
+      // Always use right/bottom for open
+      wrapper.style.left = "auto";
+      wrapper.style.top = "auto";
+      if (lastLeft !== null && lastTop !== null) {
+        // Calculate right/bottom from window size and last drag
+        const right = window.innerWidth - (lastLeft + wrapper.offsetWidth);
+        const bottom = window.innerHeight - (lastTop + wrapper.offsetHeight);
+        wrapper.style.right = `${Math.max(0, right)}px`;
+        wrapper.style.bottom = `${Math.max(0, bottom)}px`;
+      } else {
+        wrapper.style.right = "40px";
+        wrapper.style.bottom = "60px";
+      }
+      wrapper.style.width = "360px";
+      wrapper.classList.remove("collapsed");
+      if (chatHistory.length > 0) {
+        chatBox.style.display = "flex";
+      } else {
+        chatBox.style.display = "none";
+      }
+      setTimeout(() => {
+        textInput.style.opacity = "1";
+        close.style.opacity = "1";
+        textInput.style.pointerEvents = "auto";
+        close.style.pointerEvents = "auto";
+      }, 100);
+    }
+  });
+  // --- End draggable ---
 })();
